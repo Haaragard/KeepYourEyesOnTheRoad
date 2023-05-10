@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
-
     public GameObject gameOver;
     public float score;
 

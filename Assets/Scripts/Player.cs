@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -13,7 +12,6 @@ public class Player : MonoBehaviour
     public float gravity;
 
     public float rayRadius;
-    public LayerMask layer;
 
     public float horizontalSpeed;
     private bool isMovingLeft;
@@ -27,8 +25,10 @@ public class Player : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        controller = GetComponent<CharacterController>();
-        gc = FindObjectOfType<GameController>();
+        this.controller = GetComponent<CharacterController>();
+        this.gc = FindObjectOfType<GameController>();
+
+        this.StartRunning();
     }
 
     // Update is called once per frame
@@ -43,33 +43,46 @@ public class Player : MonoBehaviour
                 jumpVelocity = jumpHeight;
             }
 
-            if(Input.GetKeyDown(KeyCode.LeftArrow) && transform.position.x > -4f && !isMovingLeft)
-            {
-                isMovingLeft = true;
-                StartCoroutine(LeftMove());
-            }
-
-            if(Input.GetKeyDown(KeyCode.RightArrow) && transform.position.x < 4f && !isMovingRight)
-            {
-                isMovingRight = true;
-                StartCoroutine(RightMove());
-            }
+            this.MoveSides();
         }
         else
         {
             jumpVelocity -= gravity;
         }
 
-        OnCollision();
-
         direction.y = jumpVelocity;
 
         controller.Move(direction * Time.deltaTime);
     }
+    
+
+    private void MoveSides()
+    {
+        if (
+            (
+                Input.GetKeyDown(KeyCode.LeftArrow)
+                || Input.GetKeyDown(KeyCode.A)
+            )
+            && transform.position.x > -8f && !isMovingLeft)
+        {
+            isMovingLeft = true;
+            StartCoroutine(LeftMove());
+        }
+        else if (
+            (
+                Input.GetKeyDown(KeyCode.RightArrow)
+                || Input.GetKeyDown(KeyCode.D)
+            )
+            && transform.position.x < 8f && !isMovingRight)
+        {
+            isMovingRight = true;
+            StartCoroutine(RightMove());
+        }
+    }
 
     IEnumerator LeftMove()
     {
-        for(float i = 0; i < 10; i += 0.1f)
+        for(float i = 0; i < 10; i++)
         {
             controller.Move(Vector3.left * Time.deltaTime * horizontalSpeed);
             yield return null;
@@ -80,7 +93,7 @@ public class Player : MonoBehaviour
 
     IEnumerator RightMove()
     {
-        for(float i = 0; i < 10; i += 0.1f)
+        for(float i = 0; i < 10; i++)
         {
             controller.Move(Vector3.right * Time.deltaTime * horizontalSpeed);
             yield return null;
@@ -89,24 +102,41 @@ public class Player : MonoBehaviour
         isMovingRight = false;
     }
 
-    void OnCollision()
+    void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        RaycastHit hit;
-
-        if(Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, rayRadius, layer) && !isDead)
+        if (hit.gameObject.layer.Equals(LayerMask.NameToLayer("obstacle")) )
         {
-            anim.SetTrigger("die");
-            speed = 0;
-            jumpHeight = 0;
-            horizontalSpeed = 0;
-            Invoke("GameOver", 3f);
-
-            isDead = true;
+            this.Die();
         }
     }
 
     void GameOver()
     {
+        this.StopRunning();
         gc.ShowGameOver();
+    }
+
+    private void Die()
+    {
+        anim.SetTrigger("die");
+
+        speed = 0;
+        jumpHeight = 0;
+        horizontalSpeed = 0;
+        isDead = true;
+
+        this.StopRunning();
+
+        Invoke("GameOver", 1f);
+    }
+
+    private void StartRunning()
+    {
+        this.anim.SetBool("running", true);
+    }
+
+    private void StopRunning()
+    {
+        this.anim.SetBool("running", false);
     }
 }
