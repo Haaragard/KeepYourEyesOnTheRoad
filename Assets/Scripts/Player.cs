@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-
     private CharacterController controller;
     private int LayerToHit;
 
@@ -26,6 +25,10 @@ public class Player : MonoBehaviour
     public GameObject camera;
 
     public int coins;
+
+    private AudioSource sound;
+    public AudioClip wallHitAudio;
+    public AudioClip deathAudio;
     
     // Start is called before the first frame update
     void Start()
@@ -33,6 +36,7 @@ public class Player : MonoBehaviour
         this.controller = GetComponent<CharacterController>();
         this.gc = FindObjectOfType<GameController>();
         this.LayerToHit = this.GetObstacle();
+        this.sound = this.GetComponent<AudioSource>();
 
         this.StartRunning();
     }
@@ -150,6 +154,9 @@ public class Player : MonoBehaviour
 
     private void Die()
     {
+        StartCoroutine(this.PlayWallHitSound());
+        Invoke("PlayDeathSound", 0.9f);
+
         anim.SetTrigger("die");
 
         speed = 0;
@@ -182,5 +189,23 @@ public class Player : MonoBehaviour
     private void AddCoin()
     {
         this.coins++;
+    }
+
+    public IEnumerator PlayWallHitSound()
+    {
+        this.sound.Stop();
+        this.sound.clip = this.wallHitAudio;
+        this.sound.time = 0.03f;
+        this.sound.Play();
+
+        yield return null;
+    }
+
+    public void PlayDeathSound()
+    {
+        this.sound.Stop();
+        this.sound.clip = this.deathAudio;
+        this.sound.time = 0f;
+        this.sound.Play();
     }
 }
