@@ -5,6 +5,7 @@ public class Player : MonoBehaviour
 {
 
     private CharacterController controller;
+    private int LayerToHit;
 
     public float speed;
     public float jumpHeight;
@@ -22,11 +23,16 @@ public class Player : MonoBehaviour
 
     private GameController gc;
 
+    public GameObject camera;
+
+    public int coins;
+    
     // Start is called before the first frame update
     void Start()
     {
         this.controller = GetComponent<CharacterController>();
         this.gc = FindObjectOfType<GameController>();
+        this.LayerToHit = this.GetObstacle();
 
         this.StartRunning();
     }
@@ -52,9 +58,21 @@ public class Player : MonoBehaviour
 
         direction.y = jumpVelocity;
 
-        controller.Move(direction * Time.deltaTime);
+        Vector3 moveDirection = direction * Time.deltaTime;
+
+        controller.Move(moveDirection);
+        this.updateCameraPosition();
     }
     
+    private void updateCameraPosition()
+    {
+        Vector3 newCameraPosition = new Vector3(
+            this.transform.position.x,
+            this.transform.position.y + 5f,
+            this.transform.position.z - 5f
+        );
+        this.camera.gameObject.transform.position = newCameraPosition;
+    }
 
     private void MoveSides()
     {
@@ -104,10 +122,24 @@ public class Player : MonoBehaviour
 
     void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        if (hit.gameObject.layer.Equals(LayerMask.NameToLayer("obstacle")) )
+        LayerMask maskObstacle = this.GetObstacle();
+        int layerHit = 1 << hit.gameObject.layer;
+        bool hitLayerObstacle = this.HitObstacle();
+
+        if ((maskObstacle & layerHit) != 0 && hitLayerObstacle)
         {
             this.Die();
         }
+    }
+
+    private LayerMask GetObstacle()
+    {
+        return LayerMask.GetMask("obstacle");
+    }
+
+    private bool HitObstacle()
+    {
+        return Physics.Raycast(this.transform.position, this.transform.TransformDirection(Vector3.forward), this.rayRadius, this.LayerToHit);
     }
 
     void GameOver()
@@ -127,7 +159,7 @@ public class Player : MonoBehaviour
 
         this.StopRunning();
 
-        Invoke("GameOver", 1f);
+        Invoke("GameOver", 0.3f);
     }
 
     private void StartRunning()
@@ -138,5 +170,17 @@ public class Player : MonoBehaviour
     private void StopRunning()
     {
         this.anim.SetBool("running", false);
+    }
+
+    public IEnumerator AddACoin()
+    {
+        this.AddCoin();
+
+        yield return null;
+    }
+
+    private void AddCoin()
+    {
+        this.coins++;
     }
 }

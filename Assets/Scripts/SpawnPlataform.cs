@@ -19,9 +19,9 @@ public class SpawnPlataform : MonoBehaviour
     {
         player = GameObject.FindGameObjectWithTag("Player").transform;
 
-        for(int i =0; i < plataforms.Count; i++)
+        for(int i = 0; i < plataforms.Count; i++)
         {
-            Transform p = Instantiate(plataforms[i], new Vector3(0,0,i * 86), transform.rotation).transform;
+            Transform p = Instantiate(plataforms[i], new Vector3(0f, 0f, i * 86), transform.rotation).transform;
             currentPlataforms.Add(p);
             offset += 86; 
         }
@@ -36,7 +36,7 @@ public class SpawnPlataform : MonoBehaviour
 
         if(distance >= 5)
         {
-            Recycle(currentPlataforms[plataformIndex].gameObject);
+            this.RemoveInstantiatePlatform();
             plataformIndex++;
 
             if(plataformIndex > currentPlataforms.Count - 1)
@@ -48,9 +48,15 @@ public class SpawnPlataform : MonoBehaviour
         }
     }
 
-    public void Recycle(GameObject plataform)
+    private void RemoveInstantiatePlatform()
     {
-        plataform.transform.position = new Vector3(0,0,offset);
+        Transform lastPlatform = currentPlataforms[plataformIndex];
+
+        Transform p = Instantiate(plataforms[plataformIndex], new Vector3(0f, 0f, offset), transform.rotation).transform;
+        currentPlataforms[plataformIndex] = p;
+
         offset += 86;
+
+        Destroy(lastPlatform.gameObject);
     }
 }

@@ -7,8 +7,10 @@ public class GameController : MonoBehaviour
 {
     public GameObject gameOver;
     public float score;
+    private int coins;
 
     public Text scoreText;
+    public Text coinsText;
 
     private Player player;
 
@@ -23,9 +25,21 @@ public class GameController : MonoBehaviour
     {
         if(!player.isDead)
         {
-            score += Time.deltaTime * 5f;
-            scoreText.text = Mathf.Round(score).ToString() + "m";
+            this.UpdateScore();
+            this.UpdateCoins();
         }
+    }
+
+    private void UpdateScore()
+    {
+        score += Time.deltaTime * 5f;
+        scoreText.text = Mathf.Round(score).ToString() + "m";
+    }
+
+    private void UpdateCoins()
+    {
+        this.coins = this.player.coins;
+        this.coinsText.text = this.coins.ToString();
     }
 
     public void ShowGameOver()
